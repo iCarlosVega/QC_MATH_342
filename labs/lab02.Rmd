@@ -1,0 +1,302 @@
+---
+title: "Lab 2"
+author: "Carlos Vega Lemus"
+output: pdf_document
+date: "11:59PM February 8"
+---
+
+# Basic Modeling
+
+* In class we considered a variable `x_3` which measured "criminality". We imagined L = 4 levels "none", "infraction", "misdemeanor" and "felony". Create a variable `x_3` here with 100 random elements (equally probable). Create it as a nominal (i.e. unordered) factor.
+
+```{r}
+#TO-DO
+n = 100
+x_3 = as.factor(sample(c("none", "infraction", "misdemeanor", "felony"), size=n, replace=TRUE))
+x_3
+
+```
+
+* Use `x_3` to create `x_3_bin`, a binary feature where 0 is no crime and 1 is any crime.
+
+```{r}
+#TO-DO
+x_3_bin = ifelse(x_3 =="none", 0, 1)
+x_3_bin
+```
+
+* Use `x_3` to create `x_3_ord`, an ordered factor variable. Ensure the proper ordinal ordering.
+
+```{r}
+#TO-DO
+x_3_ord = factor(x_3, ordered = TRUE, levels=c("none", "infraction", "misdemeanor", "felony"))
+x_3_ord
+```
+
+* Convert this variable into three binary variables without any information loss and put them into a data matrix.
+
+```{r}
+#TO-DO
+X = cbind(ifelse(x_3_ord == "infraction", 1, 0), ifelse(x_3_ord == "misdemeanor", 1, 0), ifelse(x_3_ord == "felony", 1, 0))
+colnames(X) = c("infraction", "misdemeanor", "felony")
+X
+```
+
+* What should the sum of each row be (in English)? 
+
+#TO-DO
+0 or 1
+Verify that. 
+
+
+```{r}
+#TO-DO
+rowSums(X)
+```
+
+* How should the column sum look (in English)? 
+
+#TO-DO
+
+Verify that.
+
+```{r}
+#TO-DO
+#Column sums should be counts of crime level in the data 
+colSums(X)
+```
+
+* Generate a matrix with 100 rows where the first column is realization from a normal with mean 17 and variance 38, the second column is uniform between -10 and 10, the third column is poisson with mean 6, the fourth column in exponential with lambda of 9, the fifth column is binomial with n = 20 and p = 0.12 and the sixth column is a binary variable with exactly 24% 1's dispersed randomly. Name the rows the entries of the `fake_first_names` vector.
+
+```{r}
+
+fake_first_names = c(
+  "Sophia", "Emma", "Olivia", "Ava", "Mia", "Isabella", "Riley", 
+  "Aria", "Zoe", "Charlotte", "Lily", "Layla", "Amelia", "Emily", 
+  "Madelyn", "Aubrey", "Adalyn", "Madison", "Chloe", "Harper", 
+  "Abigail", "Aaliyah", "Avery", "Evelyn", "Kaylee", "Ella", "Ellie", 
+  "Scarlett", "Arianna", "Hailey", "Nora", "Addison", "Brooklyn", 
+  "Hannah", "Mila", "Leah", "Elizabeth", "Sarah", "Eliana", "Mackenzie", 
+  "Peyton", "Maria", "Grace", "Adeline", "Elena", "Anna", "Victoria", 
+  "Camilla", "Lillian", "Natalie", "Jackson", "Aiden", "Lucas", 
+  "Liam", "Noah", "Ethan", "Mason", "Caden", "Oliver", "Elijah", 
+  "Grayson", "Jacob", "Michael", "Benjamin", "Carter", "James", 
+  "Jayden", "Logan", "Alexander", "Caleb", "Ryan", "Luke", "Daniel", 
+  "Jack", "William", "Owen", "Gabriel", "Matthew", "Connor", "Jayce", 
+  "Isaac", "Sebastian", "Henry", "Muhammad", "Cameron", "Wyatt", 
+  "Dylan", "Nathan", "Nicholas", "Julian", "Eli", "Levi", "Isaiah", 
+  "Landon", "David", "Christian", "Andrew", "Brayden", "John", 
+  "Lincoln"
+)
+
+#TO-DO
+X = cbind(
+  rnorm(n, 17, sqrt(38)),
+  runif(n, -10, 10),
+  rpois(n, 6),
+  rexp(n, 9),
+  rbinom(n, 20, 0.12),
+  sample(c(rep(1, round(n*0.24)), rep(0, round(n*0.76))))
+)
+rownames(X) = fake_first_names
+X
+```
+
+* Create a data frame of the same data as above except make the binary variable a factor "DOMESTIC" vs "FOREIGN" for 0 and 1 respectively. Use RStudio's `View` function to ensure this worked as desired.
+
+```{r}
+#TO-DO
+answer = data.frame(
+  normie = rnorm(n, 17, sqrt(38)),
+  eunice = runif(n, -10, 10),
+  fish = rpois(n, 6),
+  xp = rexp(n, 9),
+  nomie = rbinom(n, 20, 0.12),
+  origin = sample(c(rep("DOMESTIC", round(n*0.24)), rep("FOREGIN", round(n*0.76))))
+)
+
+rownames(answer) = fake_first_names
+answer
+```
+
+* Print out a table of the binary variable. Then print out the proportions of "DOMESTIC" vs "FOREIGN".
+
+```{r}
+#TO-DO
+i = table(answer$origin)
+proportions(i)
+prop.table(i)
+```
+
+Print out a summary of the whole dataframe.
+
+```{r}
+#TO-DO
+summary(i)
+```
+
+
+
+
+
+## Dataframe creation
+
+
+Imagine you are running an experiment with many manipulations. You have 14 levels in the variable "treatment" with levels a, b, c, etc. For each of those manipulations you have 3 submanipulations in a variable named "variation" with levels A, B, C. Then you have "gender" with levels M / F. Then you have "generation" with levels Boomer, GenX, Millenial. Then you will have 6 runs per each of these groups. In each set of 6 you will need to select a name without duplication from the appropriate set of names (from the last question). Create a data frame with columns treatment, variation, gender, generation, name and y that will store all the unique unit information in this experiment. Leave y empty because it will be measured as the experiment is executed. Hint, we've been using the `rep` function using the `times` argument. Look at the `each` argument using `?rep`.
+
+```{r}
+n = 14 * 3 * 2 * 3 * 6
+
+X = data.frame(
+  treatment=rep(letters[1:14], each=3 * 2 * 3 * 6),
+  variation=rep(LETTERS[1:3], each=2 * 3 * 6, times=14),
+  gender=rep(c('M', 'F'), each=3 * 6, times=14 * 3),
+  generation=rep(c("Boomer", "GenX", "Millenial"), each=6, times=14 * 3 * 2),
+  name=0
+)
+
+for (i in seq(from=1, to=n, by=6)) {
+  X$name[i:(i+5)] = sample(list_within_list[[X$generation[i]]][[X$gender[i]]], 6)
+}
+X
+#TO-DO
+```
+
+* Now that you've done it with the `rep` function. Try it with the `expand.grid` function which will be much easier.
+
+```{r}
+#X = data.frame(expand.grid(
+#
+#))
+X = data.frame(expand.grid(
+  rep(NA, 6),
+  c("Boomers", "GenX", "Millennial"),
+  c("M", "F"),
+  LETTERS[1:3],
+  letters[1:14]
+))
+colnames(X) = c("name", "generation", "gender", "variation", "treatment")
+for (i in seq(from=1, to=n, by=6)) {
+  X$name[i:(i+5)] = sample(list_within_list[[X$generation[i]]][[X$gender[i]]], 6)
+}
+X
+#TO-DO
+```
+
+
+## Basic Binary Classification Modeling
+
+* Load the famous `iris` data frame into the namespace. Provide a summary of the columns using the `skim` function in package `skimr` and write a few descriptive sentences about the distributions using the code below in English.
+
+```{r}
+#TO-DO
+pacman::p_load(skimr)
+skim(iris)
+iris
+```
+
+TO-DO: describe this data
+This data is showing in 4 columns, the sepal length, sepal width, petal length and petal width of 3 different types of plants, setosa, versicolor and virginica.
+
+The outcome / label / response is `Species`. This is what we will be trying to predict. However, we only care about binary classification between "setosa" and "versicolor" for the purposes of this exercise. Thus the first order of business is to drop one class. Let's drop the data for the level "virginica" from the data frame.
+
+```{r}
+#TO-DO
+subSpecies = subset(flower_data, Species!="virginica")
+
+subSpecies
+```
+
+Now create a vector `y` that is length the number of remaining rows in the data frame whose entries are 0 if "setosa" and 1 if "versicolor".
+
+```{r}
+#TO-DO
+y = c(ifelse(subSpecies$Species == "setosa", 1, 0))
+
+y
+
+```
+
+* Write a function `mode` returning the sample mode of a vector of numeric values. Try not to look in the class notes.
+
+```{r}
+#TO-DO
+mode = function(data){
+  values = unique(data)
+  tab = tabulate(match(data,  values))
+  x = max(tab)
+  if(x > 1){
+    modes = values[tab == x] 
+    return(modes)
+  }else{
+    return(NA)
+    }
+}
+
+mode(y)
+#we have 50 50 of each so both 1 and 0 should be returned
+```
+
+* Fit a threshold model to `y` using the feature `Sepal.Length`. Write your own code to do this. What is the estimated value of the threshold parameter? Save the threshold value as `threshold`. 
+
+```{r}
+#TO-DO
+average_of_setosa = sum(iris$Sepal.Length[iris$Species == "setosa"])/length(iris$Sepal.Length[iris$Species == 'setosa'])
+average_of_versicolor = sum(iris$Sepal.Length[iris$Species == "versicolor"])/length(iris$Sepal.Length[iris$Species == 'versicolor'])
+
+threshold = average_of_setosa + (average_of_versicolor - average_of_setosa) / 2
+
+setosa_count = 0
+versicolor_count = 0
+for(i in 1:length(iris$Sepal.Length[iris$Species == "setosa"])){
+  if(iris$Sepal.Length[iris$Species == "setosa"][i] <= threshold){
+    setosa_count = setosa_count + 1
+  }
+}
+
+for(i in 1:length(iris$Sepal.Length[iris$Species == "versicolor"])){
+  if(iris$Sepal.Length[iris$Species == "versicolor"][i] >= threshold){
+    versicolor_count = versicolor_count + 1
+  }
+}
+
+versicolor_count
+setosa_count
+```
+
+What is the total number of errors this model makes?
+
+```{r}
+#TO-DO
+#My total number of errors where 5 in total, 3 setosas wrong and 1 versicolor
+
+setosa_count
+versicolor_count
+
+```
+
+Does the threshold model's performance make sense given the following summaries:
+
+```{r}
+threshold
+summary(iris[iris$Species == "setosa", "Sepal.Length"])
+summary(iris[iris$Species == "versicolor", "Sepal.Length"])
+```
+
+TO-DO: Write your answer here in English.
+
+The threshold makes sense, 5.4 is the average of both means, setosa's and versicolor sepal.length. So anything below the threshold which on average are setosas and in the other hand, anything larger than the threshold is versicolor
+
+Create the function `g` explicitly that can predict `y` from `x` being a new `Sepal.Length`.
+
+```{r}
+g = function(x){
+  if(x > threshold){
+    print("This plant is a versicolor")
+  }else{
+    print("This plant is a setosas")
+  }
+}
+
+g(5.472)
+```

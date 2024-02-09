@@ -369,6 +369,21 @@ Create a list-within-a-list that will intelligently store this data.
 #HINT: 
 #strsplit("Theodore, Bernard, Gene, Herbert, Ray, Tom, Lee, Alfred, Leroy, Eddie", split = ", ")[[1]]
 #TO-DO
+list_within_list = list(
+    Boomer = list(
+        M = strsplit("Theodore, Bernard, Gene, Herbert, Ray, Tom, Lee, Alfred, Leroy, Eddie", ", ")[[1]],
+        F = strsplit("Gloria, Joan, Dorothy, Shirley, Betty, Dianne, Kay, Marjorie, Lorraine, Mildred", ", ")[[1]]
+    ),
+    GenX = list(
+        M = strsplit("Marc, Jamie, Greg, Darryl, Tim, Dean, Jon, Chris, Troy, Jeff", ", ")[[1]],
+        F = strsplit("Tracy, Dawn, Tina, Tammy, Melinda, Tamara, Tracey, Colleen, Sherri, Heidi", ", ")[[1]]
+    ),
+    Millenial = list(
+        M = strsplit("Zachary, Dylan, Christian, Wesley, Seth, Austin, Gabriel, Evan, Casey, Luis", ", ")[[1]],
+        F = strsplit("Samantha, Alexis, Brittany, Lauren, Taylor, Bethany, Latoya, Candice, Brittney, Cheyenne", ", ")[[1]]
+    )
+)
+
 ```
 
 Now cleanup the namespace by deleting all stored objects and functions:
