@@ -1,6 +1,6 @@
 ---
 title: "Lab 3"
-author: "Carlos Vega"
+author: "Carlos vega"
 output: pdf_document
 date: "11:59PM February 15"
 ---
@@ -11,29 +11,29 @@ date: "11:59PM February 15"
 You will code the "perceptron learning algorithm" for arbitrary number of features p. Take a look at the comments above the function. Respect the spec below:
 
 ```{r}
-#' Perceptron Learning Algorithm 
+#' Perception Learning Algorithm 
 #'
-#' Returns a vector that represents a hyper-plane that linearly separates the binary response in the sample. 
+#' Returns a vector that represents a hyper-plane that linearly separates the binary response in the input space.
 #'
-#' @param Xinput      n * p matrix of the characteristics of the training data
-#' @param y_binary    n length vector of the binary responses
-#' @param MAX_ITER    Maximum iterations of the algorithm
-#' @param w_0         p+1 length vector at the initial states            
+#' @param Xinput      n X p matrix of the training data of the characteristics of the training data
+#' @param y_binary    An n length vector of the binary responses
+#' @param MAX_ITER    Max iterations to do before stopping in this algorithm
+#' @param w_0         p + 1 length vector that is the initial state
 #'
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w_0 = NULL){
   p = ncol(Xinput)
   n = nrow(Xinput)
   Xinput = cbind(1, Xinput)
-  if(is.null(w_0)){
+  if (is.null(w_0)){
     w_0 = rep(0, p + 1)
   }
   w_prev = w_0
   w = w_0
   for(iter in 1 : MAX_ITER){
-    for(i in 1 : n){
-      y_hat_i = ifelse(sum(w_prev*Xinput[i,]) >=0, 1, 0) # dot product 
-      w = w + (y_binary[i] - y_hat_i) *Xinput[i,]
+    for (i in 1 : n) {
+      y_hat_i = ifelse(sum(w_prev * Xinput[i,]) >= 0, 1, 0)
+      w = w + (y_binary[i] - y_hat_i) * Xinput[i,]
     }
     if(identical(w, w_prev)){
       break
@@ -43,6 +43,7 @@ perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w_0 
   w
 }
 ```
+
 
 To understand what the algorithm is doing - linear "discrimination" between two response categories, we can draw a picture. First let's make up some very simple training data D.
 
@@ -70,7 +71,7 @@ simple_viz_obj = ggplot(Xy_simple, aes(x = first_feature, y = second_feature, co
 simple_viz_obj
 ```
 
-TO-DO: Explain this picture.
+This picture shows the input space, useful because it shows us that we can use a line to separate the clusters.
 
 Now, let us run the algorithm and see what happens:
 
@@ -83,7 +84,7 @@ w_vec_simple_per
 
 Explain this output. What do the numbers mean? What is the intercept of this line and the slope? You will have to do some algebra.
 
-TO-DO
+The numbers are representing the features that are the coeficients for our perception algorithm. Where -12 is the bias, the two 2s represent the weights for the features. For us our y looks as the following, y = -x + 6 with a slope of -1 and an intercept at 6
 
 
 ```{r}
@@ -96,16 +97,9 @@ simple_viz_obj + simple_perceptron_line
 
 Explain this picture. Why is this line of separation not "satisfying" to you?
 
-TO-DO 
+The picture is showcasing a linearly separable sample with all the ones group somewhere above our support vector, everything bellow it are 0's represented by red. This line is not "satisfying" to me as there seems to be bias for 1's, since this is not a "average" line between both groups it gives us a sub optimal hyperplane.
 
-For extra credit, program the maximum-margin hyperplane perceptron that provides the best linear discrimination model for linearly separable data. Make sure you provide ROxygen documentation for this function.
-
-```{r}
-#TO-DO
-```
-
-
-
+The line is not in the center, this is the l_U, we need the hyperplane line in the middle.
 
 ## Support Vector Machine vs. Perceptron
 
@@ -128,8 +122,8 @@ Use the `e1071` package to fit an SVM model to the simple data. Use a formula to
 ```{r}
 pacman::p_load(e1071)
 svm_model = svm(
-  formula = #TO-DO, 
-  data = #TO-DO, 
+  formula = response ~ ., 
+  data = Xy_simple, 
   kernel = "linear", 
   scale = FALSE
 )
@@ -167,7 +161,7 @@ simple_viz_obj + simple_perceptron_line + simple_svm_line
 
 Is this SVM line a better fit than the perceptron?
 
-TO-DO
+Yes, this line is alot more "centered" in our "wedge".
 
 Now write pseuocode for your own implementation of the linear support vector machine algorithm using the Vapnik objective function we discussed.
 
@@ -186,76 +180,52 @@ Note there are differences between this spec and the perceptron learning algorit
 #'                    The default value is 1.
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1){
-  #TO-DO: write pseudo code in comments
+  # SHE - sum(max(0,, half - (y - half)w x_i - b)
+  # optimize(w_0, b_0, 1 / n SHE - lambda norm(w)^2)
 }
 ```
-
-
-If you are enrolled in 342W the following is extra credit but if you're enrolled in a masters section, the following is required. Write the actual code. You may want to take a look at the `optimx` package. You can feel free to define another function (a "private" function) in this chunk if you wish. R has a way to create public and private functions, but I believe you need to create a package to do that (beyond the scope of this course).
-
-```{r}
-#' This function implements the hinge-loss + maximum margin linear support vector machine algorithm of Vladimir Vapnik (1963).
-#'
-#' @param Xinput      The training data features as an n x p matrix.
-#' @param y_binary    The training data responses as a vector of length n consisting of only 0's and 1's.
-#' @param MAX_ITER    The maximum number of iterations the algorithm performs. Defaults to 5000.
-#' @param lambda      A scalar hyperparameter trading off margin of the hyperplane versus average hinge loss.
-#'                    The default value is 1.
-#' @return            The computed final parameter (weight) as a vector of length p + 1
-linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1){
-  #TO-DO
-}
-```
-
-If you wrote code (the extra credit), run your function using the defaults and plot it in brown vis-a-vis the previous model's line:
-
-```{r}
-svm_model_weights = linear_svm_learning_algorithm(X_simple_feature_matrix, y_binary)
-my_svm_line = geom_abline(
-    intercept = svm_model_weights[1] / svm_model_weights[3],#NOTE: negative sign removed from intercept argument here
-    slope = -svm_model_weights[2] / svm_model_weights[3], 
-    color = "brown")
-simple_viz_obj  + my_svm_line
-```
-
-Is this the same as what the `e1071` implementation returned? Why or why not?
-
-TO-DO
 
 ## Multinomial Classification using KNN
 
 Write a k = 1 nearest neighbor algorithm using the Euclidean distance function. The following comments are standard "Roxygen" format for documentation. Hopefully, we will get to packages at some point and we will go over this again. It is your job also to fill in this documentation.
 
 ```{r}
-#' TO-DO: Provide a name for this function 
+#' Nearest Neighbor Model
+#' 
+#' It classifies its predictions using its nearest neighbor in the input space.
 #'
-#' TO-DO: Explain what this function does in a few sentences
 #'
-#' @param Xinput      TO-DO: explain this argument
-#' @param y_binary    TO-DO: explain this argument
-#' @param Xtest       TO-DO: explain this argument
-#' @return            TO-DO: explain this argument
-nn_algorithm_predict = function(Xinput, y_binary, Xtest){
-  #TO-DO
+#' @param Xinput      Historical Measurements
+#' @param y_binary    Historical responses
+#' @param Xtest       A matrix of measurements where each row is a unit you wish to predict the response for
+#' @param d           distance function to measure distances between two observations. which defaults to euclidian distance
+#' @return            A vector of predicted responses
+nn_algorithm_predict = function(Xinput, y_binary, Xtest, d=function(v_1, v_2){sum((v_1 - v_2)^2)}){
+  y_hat = array(NA, nrow(Xtest))
+  for (i_star in 1:nrow(Xtest)){
+    dsq = array(NA, nrow(Xinput)) # dsquared
+    for (i in 1:nrow(Xinput)){
+      dsq[i] = d(Xinput[i,], Xtest[i_star,]) # runs distance on two vectors
+    }
+    y_hat[i_star] = y_binary[which.min(dsq)]
+  }
+  y_hat
 }
 ```
 
 Write a few tests to ensure it actually works:
 
 ```{r}
-#TO-DO
+expected_predictions = c(0, 0)
+predictions = nn_algorithm_predict(matrix(c(1, 1, 2, 2, 3, 3), ncol=2), c(0, 1, 0), matrix(c(1.5, 1.5, 2.5, 2.5), ncol=2))
+test_result = all(predictions == expected_predictions)
+test_result
 ```
 
 We now add an argument `d` representing any legal distance function to the `nn_algorithm_predict` function. Update the implementation so it performs NN using that distance function. Set the default function to be the Euclidean distance in the original function. Also, alter the documentation in the appropriate places.
 
 ```{r}
 #TO-DO
-```
-
-For extra credit (unless you're a masters student), add an argument `k` to the `nn_algorithm_predict` function and update the implementation so it performs KNN. In the case of a tie, choose yhat randomly. Set the default `k` to be the square root of the size of D which is an empirical rule-of-thumb popularized by the "Pattern Classification" book by Duda, Hart and Stork (2007). Also, alter the documentation in the appropriate places.
-
-```{r}
-#TO-DO for the 650 students but extra credit for undergrads
 ```
 
 ## Regression via OLS with one feature
@@ -273,9 +243,9 @@ beta_1 = -2
 Compute h^* as `h_star_x`, then draw epsilon from an iid N(0, 0.33^2) distribution as `epsilon`, then compute the vector y.
 
 ```{r}
-h_star_x = #TO-DO 
-epsilon = #TO-DO
-y = #TO-DO
+h_star_x = beta_0 + beta_1*x
+epsilon = rnorm(n, mean = 9, sd = .33)
+y = h_star_x + epsilon
 ```
 
 Graph the data by running the following chunk:
@@ -290,14 +260,47 @@ simple_viz_obj
 
 Does this make sense given the values of beta_0 and beta_1?
 
+Yes this graph makes sense given our values for the betas
+
 Write a function `my_simple_ols` that takes in a vector `x` and vector `y` and returns a list that contains the `b_0` (intercept), `b_1` (slope), `yhat` (the predictions), `e` (the residuals), `SSE`, `SST`, `MSE`, `RMSE` and `Rsq` (for the R-squared metric). Internally, you can only use the functions `sum` and `length` and other basic arithmetic operations. You should throw errors if the inputs are non-numeric or not the same length. You should also name the class of the return value `my_simple_ols_obj` by using the `class` function as a setter. No need to create ROxygen documentation here.
 
 ```{r}
 my_simple_ols = function(x, y){
   ols_obj = list()
-  #TO-DO
+  if (class(x) != "numeric"){
+    stop("x input is not numeric")
+  }
+  if (class(y) != "numeric"){
+    stop("y input is not numeric")
+  }
   
+  n = length(x)
+  
+  if (length(y) != n){
+    stop("x and y are not the same length")
+  }
+  
+  x_bar = mean(x)
+  y_bar = mean(y)
+  b_1 = (sum(x*y) - n*x_bar*y_bar)/(sum(x^2)-n*(x_bar)^2)
+  b_0 = y_bar - b_1*x_bar
+  e = y - (b_0 + b_1*x)
+  SSE = sum(e^2)
+  MSE = SSE/(n-2)
+  RMSE = sqrt(MSE)
+  SST = sum((y - y_bar)^2)
+  Rsq = (SST - SSE)/SST
+
   class(ols_obj) = "my_simple_ols_obj"
+  ols_obj$b_1 = b_1
+  ols_obj$b_0 = b_0
+  ols_obj$e = e
+  ols_obj$SSE = SSE
+  ols_obj$MSE = MSE
+  ols_obj$RMSE = RMSE
+  ols_obj$SST = SST
+  ols_obj$Rsq = Rsq
+  
   ols_obj
 }
 ```
@@ -305,8 +308,9 @@ my_simple_ols = function(x, y){
 Verify your computations are correct for the vectors `x` and `y` from the first chunk using the `lm` function in R:
 
 ```{r}
-lm_mod = #TO-DO
-my_simple_ols_mod = #TO-DO
+lm_mod = lm(y ~ x)
+my_simple_ols_mod = my_simple_ols(x, y)
+
 #run the tests to ensure the function is up to spec
 pacman::p_load(testthat)
 expect_equal(my_simple_ols_mod$b_0, as.numeric(coef(lm_mod)[1]), tol = 1e-4)
@@ -318,32 +322,38 @@ expect_equal(my_simple_ols_mod$Rsq, summary(lm_mod)$r.squared, tol = 1e-4)
 Verify that the average of the residuals is 0 using the `expect_equal`. Hint: use the syntax above.
 
 ```{r}
-#TO-DO
+expect_equal(0, mean(my_simple_ols_mod$e), tol = 1e-4)
 ```
 
 Create the $X$ matrix for this data example. Make sure it has the correct dimension.
 
 ```{r}
-#TO-DO
+X = cbind(1, x)
+X
 ```
 
 Use the `model.matrix` function to compute the matrix `X` and verify it is the same as your manual construction.
 
 ```{r}
-#TO-DO
+X_model_matrix = model.matrix(~ x)
 ```
 
 Create a prediction method `g` that takes in a vector `x_star` and `my_simple_ols_obj`, an object of type `my_simple_ols_obj` and predicts y values for each entry in `x_star`. 
 
 ```{r}
 g = function(my_simple_ols_obj, x_star){
-  #TO-DO
+  b_0 = my_simple_ols_obj$b_0
+  b_1 = my_simple_ols_obj$b_1
+  
+  y_pred = b_0 + b_1 * x_star
+  y_pred
 }
 ```
 
 Use this function to verify that when predicting for the average x, you get the average y.
 
 ```{r}
+my_simple_ols_obj = my_simple_ols_mod
 expect_equal(g(my_simple_ols_obj, mean(x)), mean(y))
 ```
 
@@ -355,7 +365,7 @@ beta_0 = 3
 beta_1 = -2
 beta = c(beta_0, beta_1)
 
-ns = #TO-DO
+ns = seq(10, 1000, by = 10)
 errors = array(NA, length(ns))
 for (i in 1 : length(ns)) {
   n = ns[i]
@@ -364,10 +374,14 @@ for (i in 1 : length(ns)) {
   epsilon = rnorm(n, mean = 0, sd = 0.33)
   y = h_star_x + epsilon
   
-  #TO-DO
+  lm_mod = lm(y ~ x)
+  b = coef(lm_mod)
+  
   errors[i] = sum((beta - b)^2)
 }
 errors
+
+plot(ns, errors, type = "b", xlab = "Sample Size (n)", ylab = "Estimation Error (||b - beta||^2)")
 ```
 
 
@@ -388,21 +402,21 @@ p is 1 and n is 928 the number of observations
 
 ```{r}
 pacman::p_load(skimr)
-skim(Galton)
+summary(Galton)
 ```
 
-TO-DO
+Based on the output of the summary, it seems that both parent and child heights are distributed normally because of the closeness of the mean and median values. I assume that this dataset will be used to find the parent's genetic influence on height for their children, and we can use this data to figure out the "meaning" of regression, and the origin of it's name.
 
 Find the average height (include both parents and children in this computation).
 
 ```{r}
-#TO-DO
+avg_height = mean(c(Galton$parent, Galton$child))
 ```
 
 If you were predicting child height from parent and you were using the null model, what would the RMSE be of this model be?
 
 ```{r}
-#TO-DO
+sd(Galton$child)
 ```
 
 Note that in Math 241 you learned that the sample average is an estimate of the "mean", the population expected value of height. We will call the average the "mean" going forward since it is probably correct to the nearest tenth of an inch with this amount of data.
@@ -410,24 +424,32 @@ Note that in Math 241 you learned that the sample average is an estimate of the 
 Run a linear model attempting to explain the childrens' height using the parents' height. Use `lm` and use the R formula notation. Compute and report b_0, b_1, RMSE and R^2. 
 
 ```{r}
-#TO-DO
+lm_mod = lm(child ~ parent, data = Galton)
+coefs = coef(lm_mod)
+b_0 = coefs[1]
+b_1 = coefs[2]
+summary(lm_mod)$sigma
+summary(lm_mod)$r.square
 ```
 
 Interpret all four quantities: b_0, b_1, RMSE and R^2. Use the correct units of these metrics in your answer.
 
-TO-DO
+b_0 (Intercept): This value indicates the average height of a child when the height of the parent is zero. It establishes a starting point for our predictions.
+b_1 (Slope): Represents the predicted change in the child's height corresponding to each unit increase in the parent's height. A positive b_1 suggests that taller parents tend to have taller children, indicating a direct relationship between the parent's and child's heights.
 
 How good is this model? How well does it predict? Discuss.
 
-TO-DO
+BAD, The model's R-squared value of 0.21 suggests that only 21% of the variation in children's heights can be explained by their parent's height, leaving around 79% of the variation unaccounted for by this model. This indicates a weak predictive power.
+
+The Root Mean Square Error (RMSE) of 2.24 inches means that the model's predictions typically deviate from the actual heights by about 2.24 inches. This level of error indicates that the model's predictions are not very accurate.
 
 It is reasonable to assume that parents and their children have the same height? Explain why this is reasonable using basic biology and common sense.
 
-TO-DO
+It's reasonable to assume that parents and children have similar heights, this is a simplistic but rational starting point, based on the observation, heights do not drastically change from one generation to the next. Biologically speaking, that height is influenced by genetics, and while there is variation due to environmental factors and genetic diversity, extreme deviations in height over generations are not common. This shows that there exist some sort of biological mechanism to maintain a well distrubited height average for all humans.
 
 If they were to have the same height and any differences were just random noise with expectation 0, what would the values of beta_0 and beta_1 be?
 
-TO-DO
+If children's heights were always exactly the same as their parents', beta_1 (b_1) would be 1, indicating a one-to-one relationship where each inch in a parent's height directly translates to an inch in the child's height. On the other hand, beta_0 (b_0) would be 0, as there would be no base height to consider when the parent's height is zero. 
 
 Let's plot (a) the data in D as black dots, (b) your least squares line defined by b_0 and b_1 in blue, (c) the theoretical line beta_0 and beta_1 if the parent-child height equality held in red and (d) the mean height in green.
 
@@ -446,19 +468,19 @@ ggplot(Galton, aes(x = parent, y = child)) +
 
 Fill in the following sentence: 
 
-TO-DO: Children of short parents became ... on average and children of tall parents became ... on average.
+Children of short parents became taller on average and children of tall parents became shorter on average.
 
 Why did Galton call it "Regression towards mediocrity in hereditary stature" which was later shortened to "regression to the mean"?
 
-TO-DO
+Galton coined this term due to the fact that there seemed to be a biological mechanism "regressing" the outliars back to the average of the sample.
 
 Why should this effect be real?
 
-TO-DO
+This effect is considered genuine because in any given distribution, extreme values are statistically likely to be followed by values that are closer to the mean. This is due to the principle of random variation: when an initial measurement shows an extreme value, the subsequent measurement is more likely to fall nearer to the average, reflecting a natural balance within the distribution of traits like height.
 
 You now have unlocked the mystery. Why is it that when modeling with y continuous, everyone calls it "regression"? Write a better, more descriptive and appropriate name for building predictive models with y continuous.
 
-TO-DO
+Continuous Linear Approximator
 
 You can now clear the workspace.
 
@@ -469,52 +491,17 @@ rm(list = ls())
 Create a dataset D which we call `Xy` such that the linear model has R^2 about 50\% and RMSE approximately 1.
 
 ```{r}
-x = #TO-DO
-y = #TO-DO
+n = 10000
+x = runif(n)
+beta_0 = 0.5
+beta_1 = 1.5
+h_star_x = beta_0 + beta_1 * x
+epsilon = rnorm(n, mean = 0, sd = 0.43)
+y = h_star_x + epsilon
 Xy = data.frame(x = x, y = y)
+
+lm_mod = lm(y ~ x, data = Xy)
+my_simple_ols_mod = my_simple_ols(x, y)
+Rsq = my_simple_ols_mod$Rsq
+Rsq
 ```
-
-Create a dataset D which we call `Xy` such that the linear model has R^2 about 0\% but x, y are clearly associated.
-
-```{r}
-x = #TO-DO
-y = #TO-DO
-Xy = data.frame(x = x, y = y)
-```
-
-Extra credit but required for 650 students: create a dataset D and a model that can give you R^2 arbitrarily close to 1 i.e. approximately 1 - epsilon but RMSE arbitrarily high i.e. approximately M.
-
-```{r}
-epsilon = 0.01
-M = 1000
-#TO-DO
-```
-
-
-Write a function `my_ols` that takes in `X`, a matrix with with p columns representing the feature measurements for each of the n units, a vector of n responses `y` and returns a list that contains the `b`, the p+1-sized column vector of OLS coefficients, `yhat` (the vector of n predictions), `e` (the vector of n residuals), `df` for degrees of freedom of the model, `SSE`, `SST`, `MSE`, `RMSE` and `Rsq` (for the R-squared metric). Internally, you cannot use `lm` or any other package; it must be done manually. You should throw errors if the inputs are non-numeric or not the same length. Or if `X` is not otherwise suitable. You should also name the class of the return value `my_ols` by using the `class` function as a setter. No need to create ROxygen documentation here.
-
-
-```{r}
-my_ols = function(X, y){
-  #TO-DO
-}
-```
-
-Verify that the OLS coefficients for the `Type` of cars in the cars dataset gives you the same results as we did in class (i.e. the ybar's within group). 
-
-```{r}
-#TO-DO
-```
-
-
-Create a prediction method `g` that takes in a vector `x_star` and the dataset D i.e. `X` and `y` and returns the OLS predictions. Let `X` be a matrix with with p columns representing the feature measurements for each of the n units
-
-```{r}
-g = function(x_star, X, y){
-  #TO-DO
-}
-```
-
-
-
-
