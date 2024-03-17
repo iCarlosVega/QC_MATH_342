@@ -1,0 +1,462 @@
+---
+title: "Lab 5 MATH 342W"
+author: "Your Name Here"
+output: pdf_document
+date: "11:59PM March 12"
+---
+
+Write a function spec'd as follows:
+
+```{r}
+#' Orthogonal Projection
+#'
+#' Projects vector a onto v.
+#'
+#' @param a   the vector to project
+#' @param v   the vector projected onto
+#'
+#' @returns   a list of two vectors, the orthogonal projection parallel to v named a_parallel, 
+#'            and the orthogonal error orthogonal to v called a_perpendicular
+orthogonal_projection = function(a, v){
+  #TO-DO
+  list(a_parallel = a_parallel, a_perpendicular = a_perpendicular)
+}
+```
+
+Provide predictions for each of these computations and then run them to make sure you're correct.
+
+```{r}
+orthogonal_projection(c(1,2,3,4), c(1,2,3,4))
+#prediction:
+orthogonal_projection(c(1, 2, 3, 4), c(0, 2, 0, -1))
+#prediction:
+result = orthogonal_projection(c(2, 6, 7, 3), c(1, 3, 5, 7))
+t(result$a_parallel) %*% result$a_perpendicular
+#prediction:
+result$a_parallel + result$a_perpendicular
+#prediction:
+result$a_parallel / c(1, 3, 5, 7)
+#prediction:
+```
+
+
+
+Create a vector y by simulating n = 100 standard iid normals. Create a matrix of size 100 x 2 and populate the first column by all ones (for the intercept) and the second column by 100 standard iid normals. Find the R^2 of an OLS regression of `y ~ X`. Use matrix algebra.
+
+```{r}
+#TO-DO
+```
+
+Write a for loop to each time bind a new column of 100 standard iid normals to the matrix X and find the R^2 each time until the number of columns is 100. Create a vector to save all R^2's. What happened??
+
+```{r}
+#TO-DO
+```
+
+Test that the projection matrix onto this X is the same as I_n. You may have to vectorize the matrices in the `expect_equal` function for the test to work.
+
+```{r}
+pacman::p_load(testthat)
+#TO-DO
+```
+
+Add one final column to X to bring the number of columns to 101. Then try to compute R^2. What happens? 
+
+```{r}
+#TO-DO
+```
+
+Why does this make sense?
+
+#TO-DO
+
+Let's use the Boston Housing Data for the following exercises
+
+```{r}
+y = MASS::Boston$medv
+X = model.matrix(medv ~ ., MASS::Boston)
+p_plus_one = ncol(X)
+n = nrow(X)
+```
+
+Using your function `orthogonal_projection` orthogonally project onto the column space of X by projecting y on each vector of X individually and adding up the projections and call the sum `yhat_naive`.
+
+```{r}
+yhat_naive = #TO-DO
+```
+
+How much double counting occurred? Measure the magnitude relative to the true LS orthogonal projection.
+
+```{r}
+yhat = lm(medv ~ ., MASS::Boston)$fitted.values
+sqrt(sum(yhat_naive^2)) / sqrt(sum(yhat^2))
+```
+
+Is this ratio expected? Why or why not?
+
+#TO-DO
+
+Convert X into V where V has the same column space as X but has orthogonal columns. You can use the function `orthogonal_projection`. This is the Gram-Schmidt orthogonalization algorithm (part A).
+
+```{r}
+V = matrix(NA, nrow = n, ncol = p_plus_one)
+V[, 1] = X[, 1]
+for (j in 2 : ncol(X)){
+  V[, j] = X[, j]
+  
+  for (k in 1:(j-1)){
+    v_k = V[, k, drop = FALSE]
+    V[, j] = V[, j] - #fill in here
+  }
+}
+```
+
+Convert V into Q whose columns are the same except normalized. This is the Gram-Schmidt orthogonalization algorithm (part B).
+
+```{r}
+Q = matrix(NA, nrow = n, ncol = p_plus_one)
+for(j in 1 : p_plus_one){
+  Q[, j] = V[, j] / sqrt(sum(V[, j]^2))
+}
+rm(V)
+```
+
+Verify Q^T Q is I_{p+1} i.e. Q is an orthonormal matrix.
+
+```{r}
+#TO-DO
+```
+
+Is your Q the same as what results from R's built-in QR-decomposition function?
+
+```{r}
+Q_from_Rs_builtin = #TO-DO
+```
+ 
+Is this expected? Why did this happen?
+
+#TO-DO
+
+Project y onto colsp[Q] and verify it is the same as the OLS fit. You may have to use the function `unname` to compare the vectors since they the entries will likely have different names.
+
+```{r}
+#TO-DO
+expect
+```
+
+Project y onto colsp[Q] one by one and verify it sums to be the projection onto the whole space.
+
+```{r}
+yhat_naive = #TO-DO
+```
+
+Split the Boston Housing Data into a training set and a test set where the training set is 80% of the observations. Do so at random.
+
+```{r}
+K = 5
+n_test = round(n * 1 / K)
+n_train = n - n_test
+#TO-DO
+```
+
+Fit an OLS model. Find the s_e in sample and out of sample. Which one is greater? Note: we are now using s_e and not RMSE since RMSE has the n-(p + 1) in the denominator not n-1 which attempts to de-bias the error estimate by inflating the estimate when overfitting in high p. Again, we're just using `sd(e)`, the sample standard deviation of the residuals.
+
+```{r}
+#TODO
+```
+
+Do these two exercises `Nsim = 1000` times and find the average difference between s_e and ooss_e. 
+
+```{r}
+#TODO
+```
+
+We'll now add random junk to the data so that `p_plus_one = n_train` and create a new data matrix `X_with_junk.`
+
+```{r}
+X_with_junk = cbind(X, matrix(rnorm(n * (n_train - p_plus_one)), nrow = n))
+dim(X)
+dim(X_with_junk)
+```
+
+Repeat the exercise above measuring the average s_e and ooss_e but this time record these metrics by number of features used. That is, do it for the first column of `X_with_junk` (the intercept column), then do it for the first and second columns, then the first three columns, etc until you do it for all columns of `X_with_junk`. Save these in `s_e_by_p` and `ooss_e_by_p`.
+
+
+```{r}
+#TODO
+```
+
+You can graph them here:
+
+```{r}
+pacman::p_load(ggplot2)
+ggplot(
+  rbind(
+    data.frame(s_e = s_e_by_p, p = 1 : n_train, series = "in-sample"),
+    data.frame(s_e = ooss_e_by_p, p = 1 : n_train, series = "out-of-sample")
+  )) +
+  geom_line(aes(x = p, y = s_e, col = series))
+```
+ 
+Is this shape expected? Explain.
+
+
+
+
+#TO-DO
+
+We will work with the diamonds dataset again. Here we load up the dataset and convert all factors to nominal type:
+
+```{r}
+pacman::p_load(ggplot2) #this loads the diamonds data set too
+?diamonds
+diamonds$cut =      factor(diamonds$cut, ordered = FALSE)
+diamonds$color =    factor(diamonds$color, ordered = FALSE)
+diamonds$clarity =  factor(diamonds$clarity, ordered = FALSE)
+skimr::skim(diamonds)
+```
+
+Given the information above, what are the number of columns in the raw X matrix?
+
+#TO-DO
+
+Verify this using code:
+
+```{r}
+#TO-DO
+```
+
+Would it make sense to use polynomial expansions for the variables cut, color and clarity? Why or why not?
+
+#TO-DO
+
+Would it make sense to use log transformations for the variables cut, color and clarity? Why or why not?
+
+#TO-DO
+
+In order to ensure there is no time trend in the data, randomize the order of the diamond observations in D:.
+
+```{r}
+#TO-DO
+```
+
+Let's also concentrate only on diamonds with <= 2 carats to avoid the issue we saw with the maximum. So subset the dataset. Create a variable n equal to the number of remaining rows as this will be useful for later. Then plot it.
+
+```{r}
+#TO-DO
+ggplot(diamonds, aes(x = carat, y = price)) + 
+  geom_point()
+```
+
+Create a linear model of price ~ carat and gauge its in-sample performance using s_e.
+
+```{r}
+#TO-DO
+```
+
+Create a model of price ~ clarity and gauge its in-sample performance
+
+```{r}
+#TO-DO
+```
+
+Why is the model price ~ carat substantially more accurate than price ~ clarity?
+
+#TO-DO
+
+Create a new transformed feature ln_carat and plot it vs price.
+
+```{r}
+#TO-DO
+ggplot(diamonds, aes(x = ln_carat, y = price)) + 
+  geom_point()
+```
+
+Would price ~ ln_carat be a better fitting model than price ~ carat? Why or why not?
+
+#TO-DO
+
+Verify this by comparing R^2 and RMSE of the two models:
+
+```{r}
+#TO-DO
+```
+
+Create a new transformed feature ln_price and plot its estimated density:
+
+
+```{r}
+#TO-DO
+ggplot(diamonds) + geom_histogram(aes(x = ln_price), binwidth = 0.01)
+```
+
+
+Now plot it vs carat.
+
+```{r}
+ggplot(diamonds, aes(x = carat, y = ln_price)) + 
+  geom_point()
+```
+
+Would ln_price ~ carat be a better fitting model than price ~ carat? Why or why not?
+
+#TO-DO
+
+Verify this by computing s_e of this new model. Make sure these metrics can be compared apples-to-apples with the previous.
+
+```{r}
+#TO-DO
+```
+
+We just compared in-sample statistics to draw a conclusion on which model has better performance. But in-sample statistics can lie! Why is what we did valid?
+
+#TO-DO
+
+Plot ln_price vs ln_carat.
+
+```{r}
+ggplot(diamonds, aes(x = ln_carat, y = ln_price)) + 
+  geom_point()
+```
+
+Would ln_price ~ ln_carat be the best fitting model than the previous three we considered? Why or why not?
+
+Verify this by computing s_e of this new model. Make sure these metrics can be compared apples-to-apples with the previous.
+
+```{r}
+#TO-DO
+```
+
+Compute b, the OLS slope coefficients for this new model of ln_price ~ ln_carat.
+
+```{r}
+#Model A
+#TO-DO
+```
+
+Interpret b_1, the estimated slope of ln_carat.
+
+#TO-DO
+
+Interpret b_0, the estimated intercept.
+
+#TO-DO
+
+Create other features ln_x, ln_y, ln_z, ln_depth, ln_table.
+
+```{r}
+#TO-DO
+```
+
+From now on, we will be modeling ln_price (not raw price) as the prediction target. 
+
+Create a model (B) of ln_price on ln_carat interacted with clarity and compare its performance with the model (A) ln_price ~ ln_carat.
+
+```{r}
+#Model B
+#TO-DO
+```
+
+Which model does better? Why?
+
+#TO-DO
+
+Create a model of (C) ln_price on ln_carat interacted with every categorical feature (clarity, cut and color) and compare its performance with model (B)
+
+```{r}
+#Model C
+#TO-DO
+```
+
+Which model does better? Why?
+
+#TO-DO
+
+Create a model (D) of ln_price on every continuous feature (logs of carat, x, y, z, depth, table) interacted with every categorical feature (clarity, cut and color) and compare its performance with model (C).
+
+```{r}
+#Model D
+#TO-DO
+```
+
+Which model does better? Why?
+
+#TO-DO
+
+What is the p of this model D? Compute with code.
+
+```{r}
+#TO-DO
+```
+
+Create model (E) which is the same as before except create include the raw features interacted with the categorical features and gauge the performance against (D).
+
+```{r}
+#Model E
+#TO-DO
+```
+
+Which model does better? Why?
+
+#TO-DO
+
+Create model (F) which is the same as before except also include also third degree polynomials of the continuous features interacted with the categorical features and gauge performance against (E). By this time you're getting good with R's formula syntax!
+
+```{r}
+#Model F
+#TO-DO
+```
+
+Which model does better? Why?
+
+#TO-DO
+
+Can you think of any other way to expand the candidate set curlyH? Discuss.
+
+#TO-DO
+
+We should probably assess oos performance now. Sample 2,000 diamonds and use these to create a training set of 1,800 random diamonds and a test set of 200 random diamonds. Define K and do this splitting:
+
+```{r}
+#TO-DO
+```
+
+Compute in and out of sample performance for models A-F. Use s_e as the metric (standard error of the residuals). Create a list with keys A, B, ..., F to store these metrics. Remember the performances here will be worse than before since before you're using nearly 52,000 diamonds to build a model and now it's only 1,800! 
+
+```{r}
+#TO-DO
+```
+
+You computed oos metrics only on n_* = 200 diamonds. What problem(s) do you expect in these oos metrics?
+
+#TO-DO
+
+To do the K-fold cross validation we need to get the splits right and crossing is hard. I've developed code for this already. Run this code.
+
+```{r}
+temp = rnorm(n)
+folds_vec = cut(temp, breaks = quantile(temp, seq(0, 1, length.out = K + 1)), include.lowest = TRUE, labels = FALSE)
+head(folds_vec, 200)
+```
+
+Comment on what it does and how to use it to do a K-fold CV:
+
+#TO-DO
+
+Do the K-fold cross validation for model F and compute the overall s_e and s_s_e. 
+
+```{r}
+#TO-DO
+```
+
+Does K-fold CV help reduce variance in the oos s_e? Discuss.
+
+#TO-DO
+
+Imagine using the entire rest of the dataset besides the 2,000 training observations divvied up into slices of 200. Measure the oos error for each slice on Model F in a vector `s_e_s_F` and compute the `s_s_e_F` and also plot it.
+
+```{r}
+#TO-DO
+ggplot(data.frame(s_e_s_F = s_e_s_F)) + geom_histogram(aes(x = s_e_s_F))
+```
+
