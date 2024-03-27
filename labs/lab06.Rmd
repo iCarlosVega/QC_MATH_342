@@ -1,6 +1,6 @@
 ---
 title: "Lab 6"
-author: "Carlos Vega"
+author: "Your name here"
 output: pdf_document
 ---
 
@@ -9,22 +9,22 @@ output: pdf_document
 
 I highly recommend using the [ggplot cheat sheet](https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) as a reference resource. You will see questions that say "Create the best-looking plot". Among other things you may choose to do, remember to label the axes using real English, provide a title and subtitle. You may want to pick a theme and color scheme that you like and keep that constant throughout this lab. The default is fine if you are running short of time.
 
-Load up the `GSSvocab` dataset in package `carData` as `X` and drop all observations with missing measurements. This will be a very hard visualization exercise since there is not a good model for vocab.
+Load up the `GSSvocab` dataset in package `carData` as `X` and drop all observations with missing measurements. This will be a very hard visualization exercise since there is not a good model for vocabulary.
 
 ```{r}
 pacman::p_load(carData)
-pacman::p_load(skimr)
 
-X = carData::GSSvocab
-X = na.omit(X)
-
+X=carData::GSSvocab
+X=na.omit(X)
 skimr::skim(X)
+
+summary(X)
 
 ```
 
 Briefly summarize the documentation on this dataset. What is the data type of each variable? What do you think is the response variable the collectors of this data had in mind?
 
-#TO-DO
+there are 8 features, year, gender, nativeBorn, agegroup, educGroup, vocab, age, and educ. We have some binomials, catergorical and continous.
 
 Create two different plots and identify the best-looking plot you can to examine the `age` variable. Save the best looking plot as an appropriately-named PDF.
 
@@ -35,6 +35,7 @@ plot_age=ggplot(X) +
 plot_age + geom_histogram()  
 plot_age + geom_dotplot()
 plot_age + geom_density()
+
 
 ```
 
@@ -55,6 +56,7 @@ Create the best-looking plot you can to examine the `ageGroup` variable by `gend
 
 ```{r}
 ggplot(X) + aes(x = ageGroup) + geom_bar() + facet_grid(gender~ .) 
+
 ```
 
 Create the best-looking plot you can to examine the `vocab` variable by `age`. Does there appear to be an association?
@@ -91,13 +93,13 @@ ggplot(X) + aes(x = educGroup, y = vocab) + geom_boxplot()
 Using the best-looking plot from the previous question, create the best looking overloading with variable `gender`. Does there appear to be an interaction of `gender` and `educGroup`?
 
 ```{r}
-#TO-DO
+ggplot(X) + aes(x = eduGroup, y = vocab, fill = gender) + geom_boxplot()
 ```
 
 Using facets, examine the relationship between `vocab` and `ageGroup`. You can drop year level `(Other)`. Are we getting dumber?
 
 ```{r}
-#TO-DO
+ggplot(X) + aes( x = ageGroup, y = vocab)  + geom_boxplot()  + facet_wrap(~ageGroup)
 ```
 
 
@@ -106,11 +108,11 @@ Using facets, examine the relationship between `vocab` and `ageGroup`. You can d
 Let's consider the Pima Indians Diabetes dataset from 1988:
 
 ```{r}
-MASS::Pima.tr2
+?MASS::Pima.tr2
 pima = na.omit(MASS::Pima.tr2)
-skimr::skim(MASS::Pima.tr2)
-y = ifelse(MASS::Pima.tr2$type == "Yes", 1, 0)
-X = cbind(1, MASS::Pima.tr2[, 1 : 7])
+skimr::skim(pima)
+y = ifelse(pima$type == "Yes", 1, 0)
+X = cbind(1, pima[, 1 : 7])
 ```
 
 Note the missing data. We will learn about how to handle missing data towards the end of the course. For now, replace, the missing data in the design matrix X with the average of the feature x_dot,j. You can check that this worked with the table commands at the end of the chunk:
@@ -131,32 +133,24 @@ log_logistic_prob = function(w){
 optim(c(0, 0), log_logistic_prob)$par
 ```
 
-Masters students: write a `fit_logistic_regression` function which takes in X, y and returns b which uses the optimization routine.
-
-```{r}
-fit_logistic_regression = function(X, y){
-  b = #TO-DO
-  b
-}
-```
-
 Run a logistic regression of y=1 (type is "diabetic") on just the `glu` variable using R's built-in function and report b_0, b_1.
 
 ```{r}
 b = coef(glm(y~x, family = "binomial"))
+b
 ```
 
 Comment on how close the results from R's built-in function was and your optimization call.
 
-#TO-DO
+The errors are almost the same, they are the same until the 4rd decimal
 
 Interpret the value of b_1 from R's built-in function.
 
-a one unit increase in x results in a .04 increase in log odds of having diabeties
+a one unit increase in x results in a .04 increase in log odds of having diabeties 
 
 Interpret the value of b_0 from R's built-in function.
 
-#TO-DO
+b_0 represents the log odds of the ourcome variable being diabetic when glu is euqal to 0.
 
 Plot the probability of y=1 from the minimum value of `glu` to the maximum value of `glu`.
 
@@ -171,24 +165,26 @@ pacman::p_load(ggplot2)
 ggplot(data.frame(glucose = x_stars, pred_prob_diab = p_hat)) +
   aes(x = glucose, y = pred_prob_diab) +
   geom_line()
-
 ```
 
 Run a logistic regression of y=1 (type is "diabetic") on all variables using R's built-in function and report the b vector.
 
 ```{r}
-coef(glm(y ~ X[, "glu"], family = "binomial"))
+predicted_probability = coef(glm(y ~ X[, "glu"], family = "binomial"))
+predicted_probability
 ```
 Predict the probability of diabetes for someone with a blood sugar of 150.
 
 ```{r}
-
+logistic_model = glm(y ~ glu, family = "binomial", data = X)
+predicted_probability = predict(model, newdata = data.frame(glu = 150), type = "response")
+predicted_probability
 ```
 
 For 100 people with blood sugar of 150, what is the probability more than 75 of them have diabetes? (You may need to review 241 to do this problem).
 
 ```{r}
-#TO-DO
+1 - pbinom(75, size = 100, prob = predicted_probability)
 ```
 
 Plot the in-sample log-odds predictions (y-axis) versus the real response values (x-axis).
@@ -211,18 +207,20 @@ ggplot(data.frame(p_hat=p_hat, has_diabetes=pima$type))+
 
 Comment on how well you think the logistic regression performed in-sample.
 
-#TO-DO
+The logistic regression wasnt as good when comparing the graph. Outputting 50% in detection for diabetes.
 
 Calculate the in-sample Brier score.
 
 ```{r}
-#TO-DO
+brier_score = mean((y - p_hat)^2)
+brier_score
 ```
 
 Calculate the in-sample log-scoring rule.
 
 ```{r}
-#TO-DO
+log_loss = -mean(y * log(p_hat) + (1 - y) * log(1 - p_hat))
+log_loss
 ```
 
 
@@ -230,42 +228,67 @@ Run a probit regression of y=1 (type is "diabetic") on all variables using R's b
 
 
 ```{r}
-#TO-DO
+probit_model = glm(y ~ X[, "glu"] + X[, "bp"] + X[, "skin"] + X[, "bmi"] + X[, "ped"] + X[, "age"] + X[, "npreg"], family = binomial(link = "probit"))
+p_hat_probit = predict(probit_model, type = "response")
+p_hat_probit
+b_vector_probit = coef(probit_model)
+b_vector_probit
 ```
 
 Does the weight estimates here in the probit fit have different signs than the weight estimates in the logistic fit? What does that mean?
 
-#TO-DO
+The estimates in both the probit model and the logistic regressions are different. The weight estimates are different since both models are using different link functions to relate the linear combination of the variables to the outcome.
 
 Plot the in-sample probability predictions (y-axis) versus the real response values (x-axis).
 
 ```{r}
-#TO-DO
+pima$has_diabetes = factor(y, labels = c("No", "Yes"))
+plot_data = data.frame(Actual = pima$has_diabetes, Predicted_Prob = p_hat_probit)
+ggplot(plot_data, aes(x = Actual, y = Predicted_Prob)) +
+  geom_boxplot() +
+  ylab("Predicted Probability of Diabetes") +
+  xlab("Actual Diabetes Status")
 ```
 
 Calculate the in-sample Brier score.
 
 ```{r}
-#TO-DO
+brier_score = mean((y - p_hat_probit)^2)
+brier_score
 ```
 
 Calculate the in-sample log-scoring rule.
 
 ```{r}
-#TO-DO
+log_score = -mean(y * log(p_hat_probit) + (1 - y) * log(1 - p_hat_probit))
+log_score
 ```
 
 Which model did better in-sample?
 
-#TO-DO
+The probit model did better in in-sample.
 
 Compare both model oos using the Brier score and a test set with 1/3 of the data.
 
 ```{r}
-#TO-DO
+set.seed(123)
+sample_size = floor(2/3 * nrow(pima))
+train_indices = sample(seq_len(nrow(pima)), size = sample_size)
+
+train = pima[train_indices, ]
+test = pima[-train_indices, ]
+y_test = ifelse(test$type == "Yes", 1, 0)
+
+p_hat_logit_test = predict(model, newdata = test, type = "response")
+p_hat_probit_test = predict(probit_model, newdata = test, type = "response")
+
+brier_score_logit = mean((y_test - p_hat_logit_test)^2)
+brier_score_probit = mean((y_test - p_hat_probit_test)^2)
+
+list(brier_score_logit = brier_score_logit, brier_score_probit = brier_score_probit)
 ```
 
 Which model did better oos?
 
-#TO-DO
+The logistic model performed better.
 
