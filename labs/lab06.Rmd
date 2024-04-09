@@ -1,6 +1,6 @@
 ---
 title: "Lab 6"
-author: "Your name here"
+author: "Carlos Vega"
 output: pdf_document
 ---
 
