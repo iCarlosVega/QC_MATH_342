@@ -191,7 +191,8 @@ Create a model (B) of ln_price on ln_carat interacted with clarity and compare i
 
 ```{r}
 #Model B
-#TO-DO
+mod_b = lm(ln_price ~ ln_carat*clarity, diamonds)
+summary(mod_b)$sigma
 ```
 
 Which model does better? Why?
@@ -202,7 +203,8 @@ Create a model of (C) ln_price on ln_carat interacted with every categorical fea
 
 ```{r}
 #Model C
-#TO-DO
+mod_c = lm(ln_price ~ ln_carat*(clarity + cut + color), diamonds)
+summary(mod_c)$sigma
 ```
 
 Which model does better? Why?
@@ -213,7 +215,9 @@ Create a model (D) of ln_price on every continuous feature (logs of carat, x, y,
 
 ```{r}
 #Model D
-#TO-DO
+diamonds = diamonds[diamonds$x != 0 & diamonds$y != 0 & diamonds$z != 0 & diamonds$depth != 0 & diamonds$table != 0,]
+mod_d = lm(ln_price ~ (ln_carat + ln_x + ln_y + ln_z + ln_depth + ln_table)*(clarity + cut + color) , diamonds)
+summary(mod_d)$sigma
 ```
 
 Which model does better? Why?
@@ -223,14 +227,15 @@ Which model does better? Why?
 What is the p of this model D? Compute with code.
 
 ```{r}
-#TO-DO
+mod_d$rank-1
 ```
 
 Create model (E) which is the same as before except create include the raw features interacted with the categorical features and gauge the performance against (D).
 
 ```{r}
 #Model E
-#TO-DO
+mod_e = lm(ln_price ~ (carat + x + y + z + depth + table)*(clarity + cut + color) , diamonds)
+summary(mod_e)$sigma
 ```
 
 Which model does better? Why?
@@ -241,7 +246,8 @@ Create model (F) which is the same as before except also include also third degr
 
 ```{r}
 #Model F
-#TO-DO
+mod_f = lm(ln_price ~ (poly(carat, 3) + poly(x, 3) + poly(y, 3) + poly(z, 3) + poly(depth, 3) + poly(table, 3))*(clarity + cut + color) , diamonds)
+summary(mod_e)$sigma
 ```
 
 Which model does better? Why?
@@ -255,7 +261,17 @@ Can you think of any other way to expand the candidate set curlyH? Discuss.
 We should probably assess oos performance now. Sample 2,000 diamonds and use these to create a training set of 1,800 random diamonds and a test set of 200 random diamonds. Define K and do this splitting:
 
 ```{r}
-#TO-DO
+train_indices = sample(1:nrow(diamonds), 1800)
+test_indices = sample(setdiff(1:nrow(diamonds), train_indices))
+diamonds_train = diamonds[train_indices,]
+diamonds_test = diamonds[test_indices,]
+
+y = lm(ln_price ~ diamonds_test$ln_price)
+
+mod_f = lm(ln_price ~ (poly(carat, 3) + poly(x, 3) + poly(y, 3) + poly(z, 3) + poly(depth, 3) + poly(table, 3))*(clarity + cut + color) , diamonds)
+
+y_hat_test = predict(mod_f, diamonds_test)
+mean(sum(sqrt(y - y_hat_tes)))
 ```
 
 Compute in and out of sample performance for models A-F. Use s_e as the metric (standard error of the residuals). Create a list with keys A, B, ..., F to store these metrics. Remember the performances here will be worse than before since before you're using nearly 52,000 diamonds to build a model and now it's only 1,800! 
@@ -300,7 +316,13 @@ ggplot(data.frame(s_e_s_F = s_e_s_F)) + geom_histogram(aes(x = s_e_s_F))
 Write a function `dot_product_R` in R that takes in two vectors `v1` and `v2` and returns their dot product.
 
 ```{r}
-#TO-DO
+dot_product_R = function(v1, v2){
+  dot_product = 0
+  for(i in 1:length(v1)){
+    dot_product = dot_product + (v1[i] * v2[i])
+  }
+  dot_product
+}
 ```
 
 Write a function `dot_product_cpp` in C++ and make sure it compiles.
@@ -308,7 +330,12 @@ Write a function `dot_product_cpp` in C++ and make sure it compiles.
 ```{r}
 cppFunction('
   double dot_product_cpp(NumericVector v1, NumericVector v2) {
-    #TO-DO
+    double dot_product = 0;
+    for(int i = 0; i < v1.length(); i++)
+  {
+    dot_product += v1[i] * v2[i];
+  }
+    return dot_product;
   }
 ')
 ```
